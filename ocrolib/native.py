@@ -45,7 +45,7 @@ def compile_and_find(c_string,prefix=".pynative",opt="-g -O4",libs="-lm",
     if not os.path.exists(prefix):
         os.mkdir(prefix)
     m = hashlib.md5()
-    m.update(c_string)
+    m.update(line.encode(c_string.encoding))
     base = m.hexdigest()
     if verbose: print("hash",base,"for",c_string[:20],"...")
     with lockfile(os.path.join(prefix,base+".lock")):
