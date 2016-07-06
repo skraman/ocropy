@@ -196,7 +196,7 @@ class DPSegmentLine(SimpleParams):
             subplot(311); morph.showlabels(tracks)
             subplot(312); morph.showlabels(stracks)
             subplot(313); morph.showlabels(rsegs)
-            raw_input()
+            input()
         return morph.renumber_by_xcenter(rsegs)
 
 
@@ -275,7 +275,7 @@ def contourcuts(image,maxdist=15,minrange=10,mincdist=20,sigma=1.0,debug=0,r=8,s
 
         # label the remaining minima and locate them
         locs,n = measurements.label(locs)
-        cms = measurements.center_of_mass(locs,locs,range(1,n+1))
+        cms = measurements.center_of_mass(locs,locs,list(range(1,n+1)))
 
         # keep only on of each pair (in canonical ordering)
         cms = [(int(i+0.5),int(j+0.5)) for i,j in cms if i<j]
@@ -289,14 +289,14 @@ def contourcuts(image,maxdist=15,minrange=10,mincdist=20,sigma=1.0,debug=0,r=8,s
             else:
                 color = 'b'
             if debug:
-                print (x0,y0),(x1,y1)
+                print((x0,y0),(x1,y1))
                 figure(1); plot([x0,x1],[y0,y1],color)
 
         if debug:
             figure(2); clf(); ion(); imshow(locs!=0)
             figure(3); clf(); imshow(minimum(ds,maxdist*1.5),interpolation='nearest')
             ginput(1,0.1)
-            print "hit ENTER"; raw_input()
+            print("hit ENTER"); input()
     # now construct a cut image
     cutimage = zeros(image.shape)
     for ((x0,y0),(x1,y1)) in cuts:
@@ -354,7 +354,7 @@ class ComboSegmentLine(SimpleParams):
             subplot(311); morph.showlabels(tracks)
             subplot(312); morph.showlabels(stracks)
             subplot(313); morph.showlabels(rsegs)
-            raw_input()
+            input()
         return morph.renumber_by_xcenter(rsegs)
 
 
@@ -382,13 +382,13 @@ if __name__=="__main__":
                                   debug=1)
         ion(); gray()
         for fname in args.files:
-            print fname
+            print(fname)
             image = ocrolib.read_image_gray(fname)
             segmentation = segmenter.charseg(image)
             figure("output")
             subplot(211); imshow(image)
             subplot(212); morph.showlabels(segmentation)
-            raw_input()
+            input()
         else:
             parser.print_help()
     sys.exit(0)

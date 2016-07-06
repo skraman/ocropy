@@ -2,7 +2,7 @@
 ### Native code neural network with backpropagation training.
 ################################################################
 
-from __future__ import with_statement
+
 
 __all__ = "MLP".split()
 
@@ -330,7 +330,7 @@ class MLP:
         # ninput = data.shape[1]
         if nhidden is None: nhidden = len(set(cls))
         noutput = amax(cls)+1
-        self.w1 = array(data[selection(xrange(len(data)),nhidden)] * eps/scale,'f')
+        self.w1 = array(data[selection(range(len(data)),nhidden)] * eps/scale,'f')
         self.b1 = array(uniform(-eps,eps,(nhidden,)),'f')
         self.w2 = array(uniform(-eps,eps,(noutput,nhidden)),'f')
         self.b2 = array(uniform(-eps,eps,(noutput,)),'f')
@@ -339,7 +339,7 @@ class MLP:
         pick which hidden units to delete (but currently are unused)."""
         ninput,nhidden,noutput = self.shape()
         keep = array([True]*nhidden)
-        for i in selection(xrange(nhidden),nhidden-new_nhidden):
+        for i in selection(range(nhidden),nhidden-new_nhidden):
             keep[i] = False
         self.w1 = array(self.w1[keep,:],dtype='f',order="C")
         self.b1 = array(self.b1[keep],dtype='f',order="C")
@@ -352,7 +352,7 @@ class MLP:
         bs = []
         delta = new_nhidden-nhidden
         for i in range(delta):
-            a,b = selection(xrange(nhidden),2)
+            a,b = selection(range(nhidden),2)
             l = 0.8*rand(1)[0]+0.1
             v = l*self.w1[a] + (1-l)*self.w1[b]
             vs.append(v)
@@ -397,13 +397,13 @@ class MLP:
         if verbose:
             err = error(self,data,cls)
             rate = err*1.0/len(data)
-            print "starting",data.shape,data.dtype
-            print "error",rate,err,len(data)
-            print "ranges",amin(self.w1),amax(self.w1),amin(self.w2),amax(self.w2)
+            print("starting",data.shape,data.dtype)
+            print("error",rate,err,len(data))
+            print("ranges",amin(self.w1),amax(self.w1),amin(self.w2),amax(self.w2))
         n,m,l = self.shape()
         for i in range(len(etas)):
             eta,batchsize = etas[i]
-            if verbose: print "native batch",i,eta,batchsize
+            if verbose: print("native batch",i,eta,batchsize)
             assert cls.dtype==dtype('i')
             assert amin(cls)>=0 and amax(cls)<10000
             assert eta>0.0 and eta<10.0
@@ -425,8 +425,8 @@ class MLP:
             err = error(self,data,cls)
             rate = err*1.0/len(data)
             if verbose:
-                print "error",rate,err,len(data)
-                print "ranges",amin(self.w1),amax(self.w1),amin(self.w2),amax(self.w2)
+                print("error",rate,err,len(data))
+                print("ranges",amin(self.w1),amax(self.w1),amin(self.w2),amax(self.w2))
             self.error_rate = rate
             self.training_log.append((eta,batchsize,self.error_rate))
     def outputs(self,data,subset=None):
@@ -495,8 +495,8 @@ class AutoMLP(MLP):
         self.kw = kw
     def train1(self,data,classes,verbose=0):
         n = len(data)
-        testing = array(selection(xrange(n),n/10),'i')
-        training = setdiff1d(array(xrange(n),'i'),testing)
+        testing = array(selection(range(n),n/10),'i')
+        training = setdiff1d(array(range(n),'i'),testing)
         testset = data[testing,:]
         testclasses = classes[testing]
         ntrain = min(self.initial_epochs*n,self.initial_ntrain)
@@ -509,8 +509,8 @@ class AutoMLP(MLP):
                       verbose=0,
                       samples=training)
             mlp.err = error(mlp,testset,testclasses)
-            if verbose: print "AutoMLP initial","%.3f"%mlp.eta,nh,\
-                    mlp.err,"%.4f"%(mlp.err*1.0/len(testset))
+            if verbose: print("AutoMLP initial","%.3f"%mlp.eta,nh,\
+                    mlp.err,"%.4f"%(mlp.err*1.0/len(testset)))
             pool.append(mlp)
         for i in range(self.max_rounds):
             # if the pool is too large, pick only the best models
@@ -532,9 +532,9 @@ class AutoMLP(MLP):
             # determine error on test set
             mlp.err = error(mlp,testset,testclasses)
             if verbose:
-                print "AutoMLP pool",mlp.err,"%.4f"%(mlp.err*1.0/len(testset)),\
+                print("AutoMLP pool",mlp.err,"%.4f"%(mlp.err*1.0/len(testset)),\
                     "(%.3f,%d)"%(mlp.eta,mlp.nhidden()),\
-                    [x.err for x in pool]
+                    [x.err for x in pool])
             pool += [mlp]
             # to allow partial training, update this with the best model so far
             best = argmin([x.err+0.1*x.nhidden() for x in pool])
@@ -548,9 +548,9 @@ class AutoMLP(MLP):
         There are still some metaparameters that can be set (see the __init__ method),
         but for most problems, that's not necessary."""
         for progress in self.train1(data,classes,verbose=verbose):
-            if verbose: print "progress",progress
+            if verbose: print("progress",progress)
     def assign(self,mlp):
-        for k,v in mlp.__dict__.items():
+        for k,v in list(mlp.__dict__.items()):
             if k[0]=="_" or k[-1]=="_": continue
             setattr(self,k,v)
 
@@ -566,6 +566,6 @@ def test():
     mlp.max_rounds = 32
     mlp.train(bdata[:9000,:],classes[:9000],verbose=1)
     pred = mlp.classify(data[9000:])
-    print sum(pred!=classes[9000:])
-    print mlp.w1.shape,mlp.w2.shape
+    print(sum(pred!=classes[9000:]))
+    print(mlp.w1.shape,mlp.w2.shape)
 

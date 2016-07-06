@@ -38,7 +38,7 @@ def write_cseg(stream,cseg_file):
     stream.write("\n")
 
 def genpage(d):
-    print("===",d)
+    print "===",d
     here = os.getcwd()
     try:
         os.chdir(d)

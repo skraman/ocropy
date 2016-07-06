@@ -10,7 +10,7 @@ def table_copy(source,dest,names=None,omit=[],verbose=1):
         names = names.split()
     for name in names:
         a = source.getNode("/"+name)
-        if verbose: print "[copying",name,a.shape,a.atom,"]"
+        if verbose: print("[copying",name,a.shape,a.atom,"]")
         if "VLArray" in str(a):
             b = dest.createVLArray(dest.root,name,a.atom,filters=tables.Filters(9))
         else:
@@ -28,7 +28,7 @@ def assign_array(db,name,a,verbose=1):
         atom = tables.Float32Atom()
     else:
         raise Exception('unknown array type: %s'%a.dtype)
-    if verbose: print "[writing",name,a.shape,atom,"]"
+    if verbose: print("[writing",name,a.shape,atom,"]")
     node = db.createEArray(db.root,name,atom,shape=[0]+list(a.shape[1:]),filters=tables.Filters(9))
     node.append(a)
 

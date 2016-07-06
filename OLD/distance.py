@@ -2,7 +2,7 @@
 ### Native code neural network with backpropagation training.
 ################################################################
 
-from __future__ import with_statement
+
 
 __all__ = "MLP".split()
 
@@ -90,6 +90,6 @@ if __name__=="__main__":
     b = array(randn(7,5),'f')
     from scipy.spatial.distance import cdist as oldcdist
     out = cdist(a,b)
-    print out
+    print(out)
     out2 = oldcdist(a,b)
-    print out2
+    print(out2)

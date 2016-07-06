@@ -106,7 +106,7 @@ def non_noise_components(seg,threshold=0.1):
     component to be noise."""
     seg = 1*(seg>0)
     labels,n = morph.label(seg)
-    totals = measurements.sum(seg,labels,range(1,n+1))
+    totals = measurements.sum(seg,labels,list(range(1,n+1)))
     return sum(totals>amax(totals)*threshold)
 
 def has_limited_gaps(segmentation,group,maxcomp=2,maxgapsize=2):

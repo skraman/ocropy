@@ -50,5 +50,5 @@ for c in clusters:
 
     featuremap.get(out,4)
     subplot(336); imshow(ocropy.NI(out),interpolation='nearest',cmap=cm.gray,vmin=0.0,vmax=0.3); draw()
-    raw_input()
+    input()
 

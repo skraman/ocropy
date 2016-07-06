@@ -1,7 +1,7 @@
-from toplevel import *
+from .toplevel import *
 from pylab import *
 from scipy.ndimage import filters,interpolation
-import sl,morph
+from . import sl,morph
 
 def B(a):
     if a.dtype==dtype('B'): return a
@@ -23,7 +23,7 @@ def blackout_images(image,ticlass):
     components = ocropy.intarray()
     components.copy(g)
     n = ocropy.label_components(components)
-    print "[note] number of image regions",n
+    print("[note] number of image regions",n)
     tirects = ocropy.rectarray()
     ocropy.bounding_boxes(tirects,components)
     for i in range(1,tirects.length()):
@@ -146,12 +146,12 @@ def reading_order(lines,highlight=None,debug=0):
                 if [w for w in lines if separates(w,u,v)]==[]:
                     if left_of(u,v): order[i,j] = 1
             if j==highlight and order[i,j]:
-                print (i,j),
+                print((i,j), end=' ')
                 y0,x0 = sl.center(lines[i])
                 y1,x1 = sl.center(lines[j])
                 plot([x0,x1+200],[y0,y1])
     if highlight is not None:
-        print
+        print()
         ginput(1,debug)
     return order
 
@@ -218,6 +218,6 @@ def rgbshow(r,g,b=None,gn=1,cn=0,ab=0,**kw):
         combo /= max(abs(amin(combo)),abs(amax(combo)))
     if ab:
         combo = abs(combo)
-    if amin(combo)<0: print "warning: values less than zero"
+    if amin(combo)<0: print("warning: values less than zero")
     imshow(clip(combo,0,1),**kw)
 

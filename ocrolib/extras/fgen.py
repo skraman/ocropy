@@ -159,7 +159,7 @@ def gauss_distort(images,maxdelta=2.0,sigma=10.0):
     deltas = gaussian_filter(deltas,(0,sigma,sigma))
     deltas /= max(amax(deltas),-amin(deltas))
     deltas *= maxdelta
-    xy = transpose(array(meshgrid(range(n),range(m))),axes=[0,2,1])
+    xy = transpose(array(meshgrid(list(range(n)),list(range(m)))),axes=[0,2,1])
     # print xy.shape,deltas.shape
     deltas +=  xy
     return [map_coordinates(image,deltas,order=1) for image in images]
@@ -178,7 +178,7 @@ if __name__=="__main__":
                 gray()
                 subplot(7,7,7*i+j+1); imshow(noise)
                 draw()
-        raw_input()
+        input()
 
 def cairo_render_at(s,loc=None,shape=None,
                     fontname=None,fontfile=None,size=None,
@@ -235,7 +235,7 @@ def cairo_render_at(s,loc=None,shape=None,
     return a
 
 if __name__=="x__main__":
-    s = u"hello, world: \u00E4\u0182\u03c0\u4eb0"
+    s = "hello, world: \u00E4\u0182\u03c0\u4eb0"
     subplot(311)
     imshow(cairo_render_string(s,fontname="Georgia",size=99,fg=(0.9,0.7,0.1),bg=(0.0,0.0,0.5)))
     subplot(312)

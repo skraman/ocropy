@@ -37,7 +37,7 @@ def seg_geometry(segmentation,math=1):
     ys = array([y for y,x in centers])
     a,b = polyfit(xs,ys,1)
     if seg_geometry_display:
-        print "seggeo",math
+        print("seggeo",math)
         from matplotlib import patches
         global geowin,geoax
         old = gca()
@@ -55,7 +55,7 @@ def seg_geometry(segmentation,math=1):
         geoax.plot([0,xm],[b+mh/2,a*xm+b+mh/2],'y')
         geoax.plot(xs,[y for y in ys],"g.")
         sca(old)
-        print "mh",mh,"a",a,"b",b
+        print("mh",mh,"a",a,"b",b)
     return mh,a,b
 
 def avg(*args):
@@ -132,7 +132,7 @@ def estimate_baseline(line,order=3):
     ys = argmin(vgrad,axis=0)
     xs = arange(w)
     baseline = polyfit(xs,ys,order)
-    print baseline
+    print(baseline)
     return baseline
 
 @checks(DARKLINE)

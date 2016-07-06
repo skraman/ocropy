@@ -13,21 +13,21 @@ replacements = [
 
     # single quotation marks
     (r"`","'"),       # grave accent
-    (u"\u00b4","'"),  # acute accent
-    (u"\u2018","'"),  # left single quotation mark
-    (u"\u2019","'"),  # right single quotation mark
-    (u"\u017f","s"),  # Fraktur "s" glyph
-    (u"\u021a",","),  # single low quotation mark
+    ("\u00b4","'"),  # acute accent
+    ("\u2018","'"),  # left single quotation mark
+    ("\u2019","'"),  # right single quotation mark
+    ("\u017f","s"),  # Fraktur "s" glyph
+    ("\u021a",","),  # single low quotation mark
 
     # double quotation marks
     (r'"',"''"),      # typewriter double quote
     (r'``',"''"),     # replace fancy double quotes
     (r"``","''"),     # grave accents used as quotes
     (r'"',"''"),      # replace fancy double quotes
-    (u"\u201c","''"), # left double quotation mark
-    (u"\u201d","''"), # right double quotation mark
-    (u"\u201e",",,"), # lower double quotation mark
-    (u"\u201f","''"), # reversed double quotation mark
+    ("\u201c","''"), # left double quotation mark
+    ("\u201d","''"), # right double quotation mark
+    ("\u201e",",,"), # lower double quotation mark
+    ("\u201f","''"), # reversed double quotation mark
     ]
 
 replacements2 = replacements + [
@@ -43,11 +43,11 @@ def rsample(dist):
 
 def safe_readlines(stream,nonl=0):
     once = 0
-    for lineno in xrange(100000000):
+    for lineno in range(100000000):
         try:
             line = stream.readline()
         except UnicodeDecodeError as e:
-            if not once: print lineno,":",e
+            if not once: print(lineno,":",e)
             once = 1
             return
         if line is None: return
@@ -75,18 +75,18 @@ class NGraphsCounts:
         lineskip = 0
         linelimit = 2000
         for fnum,fname in enumerate(fnames):
-            print fnum,"of",len(fnames),":",fname
+            print(fnum,"of",len(fnames),":",fname)
             if fname.startswith("lineskip="):
                 lineskip = int(fname.split("=")[1])
-                print "changing lineskip to",lineskip
+                print("changing lineskip to",lineskip)
                 continue
             if fname.startswith("linelimit="):
                 linelimit = int(fname.split("=")[1])
-                print "changing linelimit to",linelimit
+                print("changing linelimit to",linelimit)
                 continue
             with codecs.open(fname,"r","utf-8") as stream:
                 for lineno,line in enumerate(safe_readlines(stream)):
-                    assert type(line)==unicode
+                    assert type(line)==str
                     if lineno<lineskip: continue
                     if lineno>=linelimit+lineskip: break
                     line = line[:-1]
@@ -106,20 +106,20 @@ class NGraphs(NGraphsCounts):
         NGraphsCounts.__init__(self,*args,**kw)
     def buildFromFiles(self,fnames,n):
         """Given a set of files, build the log posteriors."""
-        print "reading",len(fnames),"files"
+        print("reading",len(fnames),"files")
         counter = self.computeNGraphs(fnames,n)
-        print "got",sum(counter.values()),"%d-graphs"%(n,)
+        print("got",sum(counter.values()),"%d-graphs"%(n,))
         self.computePosteriors(counter)
-        print "done building lposteriors"
+        print("done building lposteriors")
     def computePosteriors(self,counter):
         """Given a `counter` of all n-graphs, compute
         (log) conditional probabilities."""
-        self.N = len(counter.items()[0][0])
+        self.N = len(list(counter.items())[0][0])
         ngrams = defaultdict(list)
-        for k,v in counter.items():
+        for k,v in list(counter.items()):
             ngrams[k[:-1]].append((k,v))
         lposteriors = {}
-        for prefix in ngrams.keys():
+        for prefix in list(ngrams.keys()):
             ps = [(k[-1],v) for k,v in ngrams[prefix]] + [("~",1)]
             total = sum([v for k,v in ps])
             total = log(total)
@@ -137,7 +137,7 @@ class NGraphs(NGraphsCounts):
             if lposteriors is None:
                 prefix += chr(ord("a")+int(rand()*26))
             else:
-                items = [(k,p) for k,p in lposteriors.items() if k not in ["~","_"]]
+                items = [(k,p) for k,p in list(lposteriors.items()) if k not in ["~","_"]]
                 items += [(" ",10.0)]
                 ks = [k for k,p in items]
                 ps = array([p for k,p in items],'f')
@@ -154,7 +154,7 @@ class NGraphs(NGraphsCounts):
     def getBestGuesses(self,s,nother=5):
         """Get guesses for what the next character might be based on the current path."""
         lposteriors = self.getLogPosteriors(s)
-        best = sorted(lposteriors.items(),key=lambda x:x[1])[:nother]
+        best = sorted(list(lposteriors.items()),key=lambda x:x[1])[:nother]
         best = [(cls,p) for cls,p in best if cls!="~"]
         return best
 

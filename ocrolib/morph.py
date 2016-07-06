@@ -6,7 +6,7 @@ from numpy import *
 import pylab
 from scipy.ndimage import morphology,measurements,filters
 from scipy.ndimage.morphology import *
-from toplevel import *
+from .toplevel import *
 
 @checks(ABINARY2)
 def label(image,**kw):
@@ -246,7 +246,7 @@ def renumber_labels(a):
 def pyargsort(seq,cmp=cmp,key=lambda x:x):
     """Like numpy's argsort, but using the builtin Python sorting
     function.  Takes an optional cmp."""
-    return sorted(range(len(seq)),key=lambda x:key(seq.__getitem__(x)),cmp=cmp)
+    return sorted(list(range(len(seq))),key=lambda x:key(seq.__getitem__(x)),cmp=cmp)
 
 @checks(SEGMENTATION)
 def renumber_by_xcenter(seg):

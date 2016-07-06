@@ -5,6 +5,8 @@ import os
 import sys
 import warnings
 from types import NoneType
+import collections
+from functools import reduce
 # FIXME from ... import wrap
 
 ### printing
@@ -27,8 +29,8 @@ def deprecated(f):
     def wrapper(*args,**kw):
         warnings.warn_explicit("calling deprecated function %s"%f.__name__,
                                category=DeprecationWarning,
-                               filename=f.func_code.co_filename,
-                               lineno=f.func_code.co_firstlineno+1)
+                               filename=f.__code__.co_filename,
+                               lineno=f.__code__.co_firstlineno+1)
         return f(*args,**kw)
     return wrapper
 
@@ -46,22 +48,22 @@ _trace1_depth = 0
 
 def trace1(f):
     """Print arguments/return values for the decorated function before each call."""
-    name = f.func_name
-    argnames = f.func_code.co_varnames[:f.func_code.co_argcount]
+    name = f.__name__
+    argnames = f.__code__.co_varnames[:f.__code__.co_argcount]
     @functools.wraps(f)
     def wrapper(*args,**kw):
         try:
             global _trace1_depth
             _trace1_depth += 1
-            print " "*_trace1_depth,"ENTER",name,":",
-            for k,v in zip(argnames,args)+kw.items():
-                print "%s=%s"%(k,strc(v)),
-            print
+            print(" "*_trace1_depth,"ENTER",name,":", end=' ')
+            for k,v in list(zip(argnames,args))+list(kw.items()):
+                print("%s=%s"%(k,strc(v)), end=' ')
+            print()
             result = f(*args,**kw)
-            print " "*_trace1_depth,"LEAVE",name,":",strc(result)
+            print(" "*_trace1_depth,"LEAVE",name,":",strc(result))
             return result
-        except Exception,e:
-            print " "*_trace1_depth,"ERROR",name,":",e
+        except Exception as e:
+            print(" "*_trace1_depth,"ERROR",name,":",e)
             raise
         finally:
             _trace1_depth -= 1
@@ -77,7 +79,7 @@ def tracing(f):
             fname = frame.f_code.co_filename
             lineno = frame.f_lineno
             base = os.path.basename(fname)
-            print "%s(%s): %s"%(base,lineno,linecache.getline(fname,lineno))
+            print("%s(%s): %s"%(base,lineno,linecache.getline(fname,lineno)))
         return localtrace
     @wrap(f)
     def wrapper(*args,**kw):
@@ -91,7 +93,7 @@ def method(cls):
     """Adds the function as a method to the given class."""
     import new
     def _wrap(f):
-        cls.__dict__[f.func_name] = new.instancemethod(f,None,cls)
+        cls.__dict__[f.__name__] = new.instancemethod(f,None,cls)
         return None
     return _wrap
 
@@ -183,7 +185,7 @@ def checktype(value,type_):
         return value
     # callables are just called and should either use assertions or
     # explicitly raise CheckError
-    if callable(type_):
+    if isinstance(type_, collections.Callable):
         type_(value)
         return value
     # otherwise, we don't understand the type spec
@@ -195,10 +197,10 @@ def checks(*types,**ktypes):
         @functools.wraps(f)
         def argument_checks(*args,**kw):
             # print "@@@",f,"decl",types,ktypes,"call",[strc(x) for x in args],kw
-            name = f.func_name
-            argnames = f.func_code.co_varnames[:f.func_code.co_argcount]
-            kw3 = [(var,value,ktypes.get(var,True)) for var,value in kw.items()]
-            for var,value,type_ in zip(argnames,args,types)+kw3:
+            name = f.__name__
+            argnames = f.__code__.co_varnames[:f.__code__.co_argcount]
+            kw3 = [(var,value,ktypes.get(var,True)) for var,value in list(kw.items())]
+            for var,value,type_ in list(zip(argnames,args,types))+kw3:
                 try:
                     checktype(value,type_)
                 except AssertionError as e:
@@ -208,7 +210,7 @@ def checks(*types,**ktypes):
                     e.var = var
                     raise e
                 except:
-                    print "unknown exception while checking function:",name
+                    print("unknown exception while checking function:",name)
                     raise
             result = f(*args,**kw)
             checktype(result,kw.get("_",True))

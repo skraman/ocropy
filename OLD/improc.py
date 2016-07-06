@@ -290,7 +290,7 @@ def remove_noise(line,minsize=8):
     if minsize==0: return line
     bin = (line>0.5*amax(line))
     labels,n = morph.label(bin)
-    sums = measurements.sum(bin,labels,range(n+1))
+    sums = measurements.sum(bin,labels,list(range(n+1)))
     sums = sums[labels]
     good = minimum(bin,1-(sums>0)*(sums<minsize))
     return good

@@ -24,8 +24,8 @@ def create_cairo_font_face_for_file(filename, faceindex=0, loadoptions=0):
         _cairo_so = ctypes.CDLL("libcairo.so.2")
         # initialize freetype
         _ft_lib = ctypes.c_void_p()
-        if FT_Err_Ok != _freetype_so.FT_Init_FreeType(ctypes.byref(_ft_lib)):
-          raise "Error initialising FreeType library."
+#        if FT_Err_Ok != _freetype_so.FT_Init_FreeType(ctypes.byref(_ft_lib)):
+#          raise "Error initialising FreeType library."
         _surface = cairo.ImageSurface(cairo.FORMAT_A8, 0, 0)
         _initialized = True
     # create freetype face

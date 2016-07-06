@@ -33,7 +33,7 @@ class WhitespaceModel:
             h,w = self.image.shape
             draw()
             plot([0,w],[b,a*w+b],"r-")
-            raw_input()
+            input()
             clf()
     def setLine(self,image,cseg=None):
         # print "WS",image.shape,cseg.shape
@@ -64,9 +64,9 @@ class WhitespaceModel:
         sub = image.ravel()
         result = self.mlp.outputs(sub.reshape(1,len(sub)))[0]
         if display_cls:
-            print result
+            print(result)
             clf(); imshow(image); draw()
-            raw_input()
+            input()
         return result
     def startTraining(self):
         self.data = []
@@ -98,9 +98,9 @@ class WhitespaceModel:
         items = list(self.csegWhiteIterator(image,cseg,gt))
         for sub,spc,cls in items:
             if display_training:
-                print spc,cls
+                print(spc,cls)
                 clf(); imshow(sub); draw()
-                raw_input()
+                input()
             if amax(sub)<1e-6: raise BadImage()
             sub = sub*(1.0/amax(sub))
             assert sub.size==self.r*self.s*self.s, \
@@ -110,7 +110,7 @@ class WhitespaceModel:
     def updateModel(self):
         data = array(self.data,'float32')
         classes = array(self.classes,'int32')
-        print "got",sum(classes==1),"spaces out of",len(self.classes)
+        print("got",sum(classes==1),"spaces out of",len(self.classes))
         del self.data,self.classes
         self.mlp = mlp.AutoMLP()
         self.mlp.train(data,classes)

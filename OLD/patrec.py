@@ -16,7 +16,7 @@ def method(cls):
     """Adds the function as a method to the given class."""
     import new
     def _wrap(f):
-        cls.__dict__[f.func_name] = new.instancemethod(f,None,cls)
+        cls.__dict__[f.__name__] = new.instancemethod(f,None,cls)
         return None
     return _wrap
 
@@ -82,7 +82,7 @@ class Dataset:
     prevents to some degree accidentally loading too much data
     into memory at once."""
     def __init__(self,a,f=lambda x:x,subset=None,maxsize=None):
-        if subset is None: subset = range(len(a))
+        if subset is None: subset = list(range(len(a)))
         if maxsize is None: maxsize = len(a)
         subset = subset[:min(len(subset),maxsize)]
         self.a = a
@@ -109,7 +109,7 @@ def distribution(classes,n=-1):
     c = Counter(classes)
     if n<0: n = max(classes)+1
     p = zeros(n)
-    p[c.keys()] = c.values()
+    p[list(c.keys())] = list(c.values())
     return p/maximum(0.1,sum(p))
 
 ###
@@ -135,7 +135,7 @@ def rselect(data,n,s=1000,f=0.99):
     # N = len(data)
     l = pyrandom.sample(data,1)
     while len(l)<n:
-        if len(l)%100==0: print len(l)
+        if len(l)%100==0: print(len(l))
         vs = pyrandom.sample(data,s)
         ds = cdist(l,vs)
         ds = amin(ds,axis=0)
@@ -254,12 +254,12 @@ def pca_kmeans(data,k,d,min_d=3,maxiter=100,npk=1000,verbose=0,maxsample=200000,
     sample = array(sample)
     assert len(sample)>=1
     sample = sample.reshape(len(sample),-1)
-    if verbose: print sidenote+"pca",len(sample),"d",d
+    if verbose: print(sidenote+"pca",len(sample),"d",d)
     ys,mu,evals,evecs = pca(sample,d,min_k=min_d)
-    if verbose: print sidenote+"kmeans",len(sample),"k",k,"d",ys.shape
+    if verbose: print(sidenote+"kmeans",len(sample),"k",k,"d",ys.shape)
     km = kmeans(ys,k)
     if verbose:
-        print sidenote+"km",km.shape,"evecs",evecs.shape,"mu",mu.shape
+        print(sidenote+"km",km.shape,"evecs",evecs.shape,"mu",mu.shape)
     del ys; del sample
     return km,evecs,mu
     
@@ -332,7 +332,7 @@ class PcaKmeans:
             nb = []
             for i,x in enumerate(data):
                 if self.verbose:
-                    if i%100000==0: print sidenote+"PcaKmeans.predict",i
+                    if i%100000==0: print(sidenote+"PcaKmeans.predict",i)
                 nb.append(self.predict1(x))
             nb = array(nb)
         if n==0:
@@ -373,10 +373,10 @@ class HierarchicalSplitter:
             data = Dataset(data,f=self.extractor)
         k = maximum(2,minimum(len(data)//self.targetsize,self.maxsplit))
         d = self.d
-        if not self.quiet: print "\t"*self.depth,"pcakmeans",len(data),"k",k,"d",d
+        if not self.quiet: print("\t"*self.depth,"pcakmeans",len(data),"k",k,"d",d)
         self.splitter = PcaKmeans(k,d)
         self.splitter.fit(data)
-        if not self.quiet: print "\t"*self.depth,"predicting",len(data),len(data[0])
+        if not self.quiet: print("\t"*self.depth,"predicting",len(data),len(data[0]))
         nb = self.splitter.predict(data,n=1)
         sets = protosets(nb,k)
         self.subs = [None]*k
@@ -384,7 +384,7 @@ class HierarchicalSplitter:
         for s,subset in enumerate(sets):
             self.offsets.append(offset)
             if self.verbose:
-                print "\t"*self.depth,"bucket",s,"of",k,"len",len(subset),"offset",offset
+                print("\t"*self.depth,"bucket",s,"of",k,"len",len(subset),"offset",offset)
             if self.depth>=self.maxdepth or len(subset)<self.splitsize:
                 offset += 1
             else:
@@ -394,7 +394,7 @@ class HierarchicalSplitter:
                     offset = sub.fit(subdata,offset=offset)
                     self.subs[s] = sub
                 else:
-                    print "WARNING: empty split"
+                    print("WARNING: empty split")
         self.offsets.append(offset)
         return offset
     def predict1(self,v):
@@ -418,7 +418,7 @@ class HierarchicalSplitter:
             result = (self.offsets[s],self.splitter.center(s))
         else:
             result = self.subs[s].center(v)
-        print result
+        print(result)
         return result
     
 ###
@@ -651,7 +651,7 @@ def coutputs_chunk(job):
 def parallel_coutputs(model,data,parallel=multiprocessing.cpu_count(),verbose=1):
     results = [None]*len(data)
     for i,j,outs in common.parallel_map(coutputs_chunk,datachunks(data,model=model),parallel=parallel):
-        if verbose: print "parallel_coutputs",i,j,"(%d)"%parallel
+        if verbose: print("parallel_coutputs",i,j,"(%d)"%parallel)
         for k in range(j-i): results[i+k] = outs[k]
     return results
 
@@ -662,7 +662,7 @@ def predict_chunk(job):
 def parallel_predict(model,data,parallel=multiprocessing.cpu_count(),verbose=1):
     results = [None]*len(data)
     for i,j,outs in common.parallel_map(predict_chunk,datachunks(data,model=model),parallel=parallel):
-        if verbose: print "parallel_predict",i,j,"(%d)"%parallel
+        if verbose: print("parallel_predict",i,j,"(%d)"%parallel)
         for k in range(j-i): results[i+k] = outs[k]
     return results
 

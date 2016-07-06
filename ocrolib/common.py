@@ -13,14 +13,14 @@ import inspect
 import glob
 from numpy import *
 from scipy.ndimage import morphology
-import ligatures
+from . import ligatures
 import multiprocessing
-import lstm
+from . import lstm
 import pylab
 
 from pylab import imshow
-import morph
-from toplevel import *
+from . import morph
+from .toplevel import *
 
 ################################################################
 ### exceptions
@@ -89,7 +89,7 @@ def deprecated(f):
         warned = 0
         def _wrapper(*args,**kw):
             if not warned:
-                print f,"has been DEPRECATED"
+                print(f,"has been DEPRECATED")
                 warned = 1
             return f(*args,**kw)
     return _wrap
@@ -100,44 +100,44 @@ def deprecated(f):
 # text normalization
 ################################################################
 
-import chars
+from . import chars
 replacements = chars.replacements
 
 def normalize_text(s):
     """Apply standard Unicode normalizations for OCR.
     This eliminates common ambiguities and weird unicode
     characters."""
-    s = unicode(s)
+    s = str(s)
     s = unicodedata.normalize('NFC',s)
-    s = re.sub(ur'\s+(?u)',' ',s)
-    s = re.sub(ur'\n(?u)','',s)
-    s = re.sub(ur'^\s+(?u)','',s)
-    s = re.sub(ur'\s+$(?u)','',s)
+    s = re.sub(r'\s+(?u)',' ',s)
+    s = re.sub(r'\n(?u)','',s)
+    s = re.sub(r'^\s+(?u)','',s)
+    s = re.sub(r'\s+$(?u)','',s)
     for m,r in replacements:
-        s = re.sub(unicode(m),unicode(r),s)
+        s = re.sub(str(m),str(r),s)
     return s
 
 def project_text(s,kind="exact"):
     """Project text onto a smaller subset of characters
     for comparison."""
     s = normalize_text(s)
-    s = re.sub(ur'( *[.] *){4,}',u'....',s) # dot rows
-    s = re.sub(ur'[~_]',u'',s) # dot rows
+    s = re.sub(r'( *[.] *){4,}','....',s) # dot rows
+    s = re.sub(r'[~_]','',s) # dot rows
     if kind=="exact":
         return s
     if kind=="nospace":
-        return re.sub(ur'\s','',s)
+        return re.sub(r'\s','',s)
     if kind=="spletdig":
-        return re.sub(ur'[^A-Za-z0-9 ]','',s)
+        return re.sub(r'[^A-Za-z0-9 ]','',s)
     if kind=="letdig":
-        return re.sub(ur'[^A-Za-z0-9]','',s)
+        return re.sub(r'[^A-Za-z0-9]','',s)
     if kind=="letters":
-        return re.sub(ur'[^A-Za-z]','',s)
+        return re.sub(r'[^A-Za-z]','',s)
     if kind=="digits":
-        return re.sub(ur'[^0-9]','',s)
+        return re.sub(r'[^0-9]','',s)
     if kind=="lnc":
         s = s.upper()
-        return re.sub(ur'[^A-Z]','',s)
+        return re.sub(r'[^A-Z]','',s)
     raise BadInput("unknown normalization: "+kind)
 
 ################################################################
@@ -248,7 +248,7 @@ def write_image_gray(fname,image,normalize=0,verbose=0):
     type, its values are clipped to the range [0,1],
     multiplied by 255 and converted to unsigned bytes.  Otherwise,
     the image must be of type unsigned byte."""
-    if verbose: print "# writing",fname
+    if verbose: print("# writing",fname)
     if isfloatarray(image):
         image = array(255*clip(image,0.0,1.0),'B')
     assert image.dtype==dtype('B'),"array has wrong dtype: %s"%image.dtype
@@ -271,7 +271,7 @@ def write_image_binary(fname,image,verbose=0):
     """Write a binary image to disk. This verifies first that the given image
     is, in fact, binary.  The image may be of any type, but must consist of only
     two values."""
-    if verbose: print "# writing",fname
+    if verbose: print("# writing",fname)
     assert image.ndim==2
     image = array(255*(image>midrange(image)),'B')
     im = array2pil(image)
@@ -474,7 +474,7 @@ class RegionExtractor:
 ### and it also contains workarounds for changed module/class names.
 ################################################################
 
-import cPickle
+import pickle
 import gzip
 
 def save_object(fname,obj,zip=0):
@@ -483,16 +483,16 @@ def save_object(fname,obj,zip=0):
     if zip>0:
         # with gzip.GzipFile(fname,"wb") as stream:
         with os.popen("gzip -9 > '%s'"%fname,"wb") as stream:
-            cPickle.dump(obj,stream,2)
+            pickle.dump(obj,stream,2)
     else:
         with open(fname,"wb") as stream:
-            cPickle.dump(obj,stream,2)
+            pickle.dump(obj,stream,2)
 
 def unpickle_find_global(mname,cname):
     if mname=="lstm.lstm":
         return getattr(lstm,cname)
-    if not mname in sys.modules.keys():
-        exec "import "+mname
+    if not mname in list(sys.modules.keys()):
+        exec("import "+mname)
     return getattr(sys.modules[mname],cname)
 
 def load_object(fname,zip=0,nofind=0,verbose=0):
@@ -502,18 +502,18 @@ def load_object(fname,zip=0,nofind=0,verbose=0):
     if not nofind:
         fname = ocropus_find_file(fname)
     if verbose:
-        print "# loading object",fname
+        print("# loading object",fname)
     if zip==0 and fname.endswith(".gz"):
         zip = 1
     if zip>0:
         # with gzip.GzipFile(fname,"rb") as stream:
         with os.popen("gunzip < '%s'"%fname,"rb") as stream:
-            unpickler = cPickle.Unpickler(stream)
+            unpickler = pickle.Unpickler(stream)
             unpickler.find_global = unpickle_find_global
             return unpickler.load()
     else:
         with open(fname,"rb") as stream:
-            unpickler = cPickle.Unpickler(stream)
+            unpickler = pickle.Unpickler(stream)
             unpickler.find_global = unpickle_find_global
             return unpickler.load()
 
@@ -542,7 +542,7 @@ def chist(l):
     counts = {}
     for c in l:
         counts[c] = counts.get(c,0)+1
-    hist = [(v,k) for k,v in counts.items()]
+    hist = [(v,k) for k,v in list(counts.items())]
     return sorted(hist,reverse=1)
 
 ################################################################
@@ -572,7 +572,7 @@ def parallel_map(fun,jobs,parallel=0,chunksize=1):
 def check_valid_class_label(s):
     """Determines whether the given character is a valid class label.
     Control characters and spaces are not permitted."""
-    if type(s)==unicode:
+    if type(s)==str:
         if re.search(r'[\0-\x20]',s):
             raise BadClassLabel(s)
     elif type(s)==str:
@@ -595,7 +595,7 @@ def summary(x):
 ### file name manipulation
 ################################################################
 
-from default import getlocal
+from .default import getlocal
 
 
 @checks(str,_=str)
@@ -632,11 +632,11 @@ def allsplitext(path):
 def base(path):
     return allsplitext(path)[0]
 
-@checks(str,{str,unicode})
+@checks(str,{str,str})
 def write_text_simple(file,s):
     """Write the given string s to the output file."""
     with open(file,"w") as stream:
-        if type(s)==unicode: s = s.encode("utf-8")
+        if type(s)==str: s = s.encode("utf-8")
         stream.write(s)
 
 @checks([str])
@@ -741,7 +741,7 @@ def set_params(object,kw,warn=1):
     without the key,value pairs that have been used.  If
     all keywords have been used, afterwards, len(kw)==0."""
     kw = kw.copy()
-    for k,v in kw.items():
+    for k,v in list(kw.items()):
         if hasattr(object,k):
             setattr(object,k,v)
             del kw[k]
@@ -839,8 +839,8 @@ def pyconstruct(s):
     path = s[:s.find("(")]
     if "." in path:
         module = path[:path.rfind(".")]
-        print "import",module
-        exec "import "+module in env
+        print("import",module)
+        exec("import "+module, env)
     return eval(s,env)
 
 def mkpython(name):
@@ -896,15 +896,15 @@ def save_component(file,object,verbose=0,verify=0):
         ocropus.save_component(file,object)
         return
     if verbose:
-        print "[save_component]"
+        print("[save_component]")
     if verbose:
-        for k,v in object.__dict__.items():
-            print ":",k,obinfo(v)
+        for k,v in list(object.__dict__.items()):
+            print(":",k,obinfo(v))
     with open(file,"wb") as stream:
         pickle.dump(object,stream,pickle_mode)
     if verify:
         if verbose:
-            print "[trying to read it again]"
+            print("[trying to read it again]")
         with open(file,"rb") as stream:
             pickle.load(stream)
 
@@ -1050,7 +1050,7 @@ def remove_noise(line,minsize=8):
     if minsize==0: return line
     bin = (line>0.5*amax(line))
     labels,n = morph.label(bin)
-    sums = measurements.sum(bin,labels,range(n+1))
+    sums = measurements.sum(bin,labels,list(range(n+1)))
     sums = sums[labels]
     good = minimum(bin,1-(sums>0)*(sums<minsize))
     return good

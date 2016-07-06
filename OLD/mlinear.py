@@ -66,7 +66,7 @@ def logreg_gd(data,target,eta=0.1,A=None,a=None,niter=None):
         l = eta * i**-0.5
         A -= l * outer(delta,data[j])
         a -= l * delta
-        if i%100000==0: print i,e.value(),d.value()
+        if i%100000==0: print(i,e.value(),d.value())
     return (e.value(),A,a)
 
 ###
@@ -80,7 +80,7 @@ def logloss(data,target,A,verbose=0):
     if A.ndim==1: A = A.reshape(target.shape[1],data.shape[1])
     # pred = logpred(data,A)
     loss = sum((logpred(data,A)-target)**2)
-    if verbose: print "loss",loss
+    if verbose: print("loss",loss)
     return loss
 
 def dlogloss(data,target,A):
@@ -138,16 +138,16 @@ def logreg_fp(data,targets,lstsq=linalg.lstsq,eta=10.0,rtol=1e-3,maxiter=1000,ve
         if type(A)==tuple: A = A[0]
         pred = dot(data,A)
         if i==0 and verbose:
-            print "lerror",sum((pred-targets)**2)
+            print("lerror",sum((pred-targets)**2))
         spred = sigmoid(pred)
         deltas = (targets-spred)
         ntargets = pred + deltas*eta
         error = sum((spred-targets)**2)
         improvement = (last-error)/error
         if verbose:
-            print i,error,improvement,
+            print(i,error,improvement, end=' ')
             if verbose>1: "/",mean(A),sqrt(var(A)),"/",mean(deltas),sqrt(var(deltas)),
-            print
+            print()
         if i>miniter and (improvement<rtol or (last-error)<tol): break
         last = error
     return A
@@ -266,7 +266,7 @@ class LinKernelClassifier:
         global data,dists,protos
         data = make2d(rdata)
         protos = make2d(rprotos)
-        print "training",data.shape,protos.shape,sigma,Counter(classes).most_common(5)
+        print("training",data.shape,protos.shape,sigma,Counter(classes).most_common(5))
         assert data.ndim>=2
         assert classes.ndim==1
         assert protos.shape[1]==data.shape[1],\
@@ -279,9 +279,9 @@ class LinKernelClassifier:
         dists = dists[order]
         data = data[order]
         classes = classes[order]
-        print dists.shape
+        print(dists.shape)
         mdists = mean(dists,axis=0)
-        print mdists
+        print(mdists)
         ys = c_[ones(len(data)),dists]
         targets = array([classes==c for c in self.classlist],'i').T
         if linear:

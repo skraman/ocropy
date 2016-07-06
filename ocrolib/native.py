@@ -35,7 +35,7 @@ B = c_byte
 
 for d in range(1,4):
     for T,t in [("I","int32"),("F","float32"),("D","float64"),("B","int8"),("U","uint8")]:
-        exec "A%d%s = ndpointer(dtype='%s',ndim=%d,flags='CONTIGUOUS,ALIGNED')"%(d,T,t,d)
+        exec("A%d%s = ndpointer(dtype='%s',ndim=%d,flags='CONTIGUOUS,ALIGNED')"%(d,T,t,d))
 
 class CompileError(Exception):
     pass
@@ -47,19 +47,19 @@ def compile_and_find(c_string,prefix=".pynative",opt="-g -O4",libs="-lm",
     m = hashlib.md5()
     m.update(c_string)
     base = m.hexdigest()
-    if verbose: print "hash",base,"for",c_string[:20],"..."
+    if verbose: print("hash",base,"for",c_string[:20],"...")
     with lockfile(os.path.join(prefix,base+".lock")):
         so = os.path.join(prefix,base+".so")
         if os.path.exists(so):
-            if verbose: print "returning existing",so
+            if verbose: print("returning existing",so)
             return so
         source = os.path.join(prefix,base+".c")
         with open(source,"w") as stream:
             stream.write(c_string)
         cmd = "gcc "+opt+" "+libs+" "+options+" "+source+" -o "+so
-        if verbose: print "#",cmd
+        if verbose: print("#",cmd)
         if os.system(cmd)!=0:
-            if verbose: print "compilation failed"
+            if verbose: print("compilation failed")
             raise CompileError()
         return so
 

@@ -24,12 +24,12 @@
 # Author: Thomas M. Breuel
 # License: Apache 2.0
 
-import common as ocrolib
+from . import common as ocrolib
 from pylab import *
 from collections import defaultdict
 from ocrolib.native import *
 from ocrolib import edist
-import nutils
+from . import nutils
 import unicodedata
 
 initial_range = 0.1
@@ -206,7 +206,7 @@ class Network:
         """Return all weights as a single vector. This is mainly a convenience
         function for plotting."""
         aw = list(self.weights())
-        weights,derivs,names = zip(*aw)
+        weights,derivs,names = list(zip(*aw))
         weights = [w.ravel() for w in weights]
         derivs = [d.ravel() for d in derivs]
         return concatenate(weights),concatenate(derivs)
@@ -222,7 +222,7 @@ class Network:
             ds.ravel()[:] = self.momentum * ds.ravel()[:] + self.learning_rate * dw.ravel()[:]
             w.ravel()[:] += ds.ravel()[:]
             if self.verbose:
-                print n,(amin(w),amax(w)),(amin(dw),amax(dw))
+                print(n,(amin(w),amax(w)),(amin(dw),amax(dw)))
 
 ''' The following are subclass responsibility:
 
@@ -270,7 +270,7 @@ class Logreg(Network):
         n = len(zs)
         assert len(deltas)==len(inputs)
         dzspre,dys = [None]*n,[None]*n
-        for i in reversed(range(len(zs))):
+        for i in reversed(list(range(len(zs)))):
             dzspre[i] = deltas[i] * zs[i] * (1-zs[i])
             dys[i] = dot(dzspre[i],self.W2)[1:]
         self.dzspre = dzspre
@@ -280,7 +280,7 @@ class Logreg(Network):
         vars = sorted("W2".split())
         for v in vars:
             a = array(getattr(self,v))
-            print v,a.shape,amin(a),amax(a)
+            print(v,a.shape,amin(a),amax(a))
     def weights(self):
         yield self.W2,self.DW2,"Logreg"
 
@@ -315,7 +315,7 @@ class Softmax(Network):
         n = len(zs)
         assert len(deltas)==len(inputs)
         dzspre,dys = [None]*n,[None]*n
-        for i in reversed(range(len(zs))):
+        for i in reversed(list(range(len(zs)))):
             dzspre[i] = deltas[i]
             dys[i] = dot(dzspre[i],self.W2)[1:]
         self.DW2 = sumouter(dzspre,inputs)
@@ -324,7 +324,7 @@ class Softmax(Network):
         vars = sorted("W2".split())
         for v in vars:
             a = array(getattr(self,v))
-            print v,a.shape,amin(a),amax(a)
+            print(v,a.shape,amin(a),amax(a))
     def weights(self):
         yield self.W2,self.DW2,"Softmax"
 
@@ -356,7 +356,7 @@ class MLP(Network):
         xs,ys,zs = self.state
         n = len(xs)
         dxs,dyspre,dzspre,dys = [None]*n,[None]*n,[None]*n,[None]*n
-        for i in reversed(range(len(zs))):
+        for i in reversed(list(range(len(zs)))):
             dzspre[i] = deltas[i] * zs[i] * (1-zs[i])
             dys[i] = dot(dzspre[i],self.W2)[1:]
             dyspre[i] = dys[i] * (ys[i] * (1-ys[i]))[1:]
@@ -443,7 +443,7 @@ def backward_py(n,N,ni,ns,na,deltas,
                     DWGI,DWGF,DWGO,DWCI,
                     DWIP,DWFP,DWOP):
     """Perform backward propagation of deltas for a simple LSTM layer."""
-    for t in reversed(range(n)):
+    for t in reversed(list(range(n))):
         outerr[t] = deltas[t]
         if t<n-1:
             outerr[t] += sourceerr[t+1][-ns:]
@@ -513,7 +513,7 @@ class LSTM(Network):
         vars = sorted(vars)
         for v in vars:
             a = array(getattr(self,v))
-            print v,a.shape,amin(a),amax(a)
+            print(v,a.shape,amin(a),amax(a))
     def preSave(self):
         self.max_n = max(500,len(self.ci))
         self.allocate(1)
@@ -659,7 +659,7 @@ class Parallel(Network):
             for x in sub.walk(): yield x
     def forward(self,xs):
         outputs = [net.forward(xs) for net in self.nets]
-        outputs = zip(*outputs)
+        outputs = list(zip(*outputs))
         outputs = [concatenate(l) for l in outputs]
         return outputs
     def backward(self,deltas):
@@ -675,7 +675,7 @@ class Parallel(Network):
             net.info()
     def states(self):
         # states = [net.states() for net in self.nets] # FIXME
-        outputs = zip(*outputs)
+        outputs = list(zip(*outputs))
         outputs = [concatenate(l) for l in outputs]
         return outputs
     def weights(self):
@@ -925,7 +925,7 @@ class SeqRecognizer:
     def l2s(self,l):
         "Convert a code sequence into a unicode string after recognition."
         l = self.codec.decode(l)
-        return u"".join(l)
+        return "".join(l)
     def trainString(self,xs,s,update=1):
         "Perform training with a string. This uses the codec and normalizer."
         return self.trainSequence(xs,self.s2l(s),update=update)
@@ -958,7 +958,7 @@ class Codec:
         s = [self.code2char.get(c,"~") for c in l]
         return s
 
-ascii_labels = [""," ","~"] + [unichr(x) for x in range(33,126)]
+ascii_labels = [""," ","~"] + [chr(x) for x in range(33,126)]
 
 def ascii_codec():
     "Create a codec containing just ASCII characters."
